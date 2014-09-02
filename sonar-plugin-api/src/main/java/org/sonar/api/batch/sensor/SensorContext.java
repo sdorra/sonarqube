@@ -33,6 +33,7 @@ import org.sonar.api.batch.sensor.issue.IssueBuilder;
 import org.sonar.api.batch.sensor.measure.Measure;
 import org.sonar.api.batch.sensor.measure.MeasureBuilder;
 import org.sonar.api.batch.sensor.symbol.SymbolTableBuilder;
+import org.sonar.api.batch.sensor.test.TestPlanBuilder;
 import org.sonar.api.config.Settings;
 
 import javax.annotation.CheckForNull;
@@ -149,7 +150,14 @@ public interface SensorContext {
   /**
    * Register all duplications of an {@link InputFile}. Use {@link #duplicationBuilder(InputFile)} to create
    * list of duplications.
+   * @since 4.5
    */
   void saveDuplications(InputFile inputFile, List<DuplicationGroup> duplications);
+
+  /**
+   * Create a new test plan for the given test file.
+   * @param testFile An {@link InputFile} with type {@link InputFile.Type#TEST}
+   */
+  TestPlanBuilder testPlanBuilder(InputFile testFile);
 
 }

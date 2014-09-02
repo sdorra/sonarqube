@@ -19,16 +19,19 @@
  */
 package org.sonar.batch.scan;
 
+import com.google.common.base.Preconditions;
 import org.sonar.api.batch.Sensor;
 import org.sonar.api.batch.fs.FileSystem;
 import org.sonar.api.batch.fs.InputDir;
 import org.sonar.api.batch.fs.InputFile;
+import org.sonar.api.batch.fs.InputFile.Type;
 import org.sonar.api.batch.fs.InputPath;
 import org.sonar.api.batch.measure.Metric;
 import org.sonar.api.batch.rule.ActiveRules;
 import org.sonar.api.batch.sensor.SensorContext;
 import org.sonar.api.batch.sensor.issue.Issue;
 import org.sonar.api.batch.sensor.measure.Measure;
+import org.sonar.api.batch.sensor.test.TestPlanBuilder;
 import org.sonar.api.component.ResourcePerspectives;
 import org.sonar.api.config.Settings;
 import org.sonar.api.issue.Issuable;
@@ -40,13 +43,16 @@ import org.sonar.api.measures.SumChildDistributionFormula;
 import org.sonar.api.resources.Directory;
 import org.sonar.api.resources.File;
 import org.sonar.api.resources.Project;
+import org.sonar.api.resources.Qualifiers;
 import org.sonar.api.resources.Resource;
 import org.sonar.api.resources.Scopes;
 import org.sonar.api.rule.RuleKey;
+import org.sonar.api.test.MutableTestPlan;
 import org.sonar.batch.duplication.BlockCache;
 import org.sonar.batch.duplication.DuplicationCache;
 import org.sonar.batch.index.ComponentDataCache;
 import org.sonar.batch.scan2.BaseSensorContext;
+import org.sonar.batch.test.DefaultTestPlanBuilder;
 
 import java.io.Serializable;
 
@@ -207,6 +213,20 @@ public class SensorContextAdaptor extends BaseSensorContext {
       .message(issue.message())
       .severity(issue.severity())
       .build();
+  }
+
+  @Override
+  public TestPlanBuilder testPlanBuilder(InputFile testFile) {
+    Preconditions.checkArgument(testFile.type() == Type.TEST, "Should be a test file: " + testFile);
+    File testRes = File.create(testFile.relativePath());
+    testRes.setQualifier(Qualifiers.UNIT_TEST_FILE);
+    // Reload
+    testRes = sensorContext.getResource(testRes);
+    if (testRes == null) {
+      throw new IllegalArgumentException("Provided input file is not indexed or not a test file: " + testFile);
+    }
+    MutableTestPlan testPlan = perspectives.as(MutableTestPlan.class, testRes);
+    return new DefaultTestPlanBuilder(testFile, null, testPlan);
   }
 
 }

@@ -19,10 +19,12 @@
  */
 package org.sonar.batch.scan2;
 
+import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import org.sonar.api.batch.bootstrap.ProjectDefinition;
 import org.sonar.api.batch.fs.FileSystem;
 import org.sonar.api.batch.fs.InputFile;
+import org.sonar.api.batch.fs.InputFile.Type;
 import org.sonar.api.batch.measure.Metric;
 import org.sonar.api.batch.rule.ActiveRules;
 import org.sonar.api.batch.rule.internal.DefaultActiveRule;
@@ -30,6 +32,7 @@ import org.sonar.api.batch.sensor.issue.Issue;
 import org.sonar.api.batch.sensor.issue.internal.DefaultIssue;
 import org.sonar.api.batch.sensor.measure.Measure;
 import org.sonar.api.batch.sensor.measure.internal.DefaultMeasure;
+import org.sonar.api.batch.sensor.test.TestPlanBuilder;
 import org.sonar.api.config.Settings;
 import org.sonar.api.rule.RuleKey;
 import org.sonar.api.utils.MessageException;
@@ -38,6 +41,8 @@ import org.sonar.batch.duplication.DuplicationCache;
 import org.sonar.batch.index.ComponentDataCache;
 import org.sonar.batch.issue.IssueFilters;
 import org.sonar.batch.scan.SensorContextAdaptor;
+import org.sonar.batch.test.DefaultTestPlanBuilder;
+import org.sonar.batch.test.TestCaseCache;
 import org.sonar.core.component.ComponentKeys;
 
 import java.io.Serializable;
@@ -49,16 +54,18 @@ public class DefaultSensorContext extends BaseSensorContext {
   private final ProjectDefinition def;
   private final ActiveRules activeRules;
   private final IssueFilters issueFilters;
+  private final TestCaseCache testCaseCache;
 
   public DefaultSensorContext(ProjectDefinition def, AnalyzerMeasureCache measureCache, AnalyzerIssueCache issueCache,
     Settings settings, FileSystem fs, ActiveRules activeRules, IssueFilters issueFilters, ComponentDataCache componentDataCache,
-    BlockCache blockCache, DuplicationCache duplicationCache) {
+    BlockCache blockCache, DuplicationCache duplicationCache, TestCaseCache testCaseCache) {
     super(settings, fs, activeRules, componentDataCache, blockCache, duplicationCache);
     this.def = def;
     this.measureCache = measureCache;
     this.issueCache = issueCache;
     this.activeRules = activeRules;
     this.issueFilters = issueFilters;
+    this.testCaseCache = testCaseCache;
   }
 
   @Override
@@ -127,6 +134,12 @@ public class DefaultSensorContext extends BaseSensorContext {
     if (issue.severity() == null) {
       issue.setSeverity(activeRule.severity());
     }
+  }
+
+  @Override
+  public TestPlanBuilder testPlanBuilder(InputFile testFile) {
+    Preconditions.checkArgument(testFile.type() == Type.TEST, "Should be a test file: " + testFile);
+    return new DefaultTestPlanBuilder(testFile, testCaseCache, null);
   }
 
 }
