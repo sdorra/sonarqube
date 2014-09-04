@@ -58,6 +58,7 @@ import org.sonar.batch.scan2.AnalyzerMeasureCache;
 import org.sonar.batch.scan2.ProjectScanContainer;
 import org.sonar.batch.scan2.ScanTaskObserver;
 import org.sonar.batch.symbol.SymbolData;
+import org.sonar.batch.test.CoveragePerTestCache;
 import org.sonar.batch.test.TestCaseCache;
 import org.sonar.core.plugins.DefaultPluginMetadata;
 import org.sonar.core.plugins.RemotePlugin;
@@ -230,6 +231,7 @@ public class BatchMediumTester {
     private Map<InputFile, SyntaxHighlightingData> highlightingPerFile = new HashMap<InputFile, SyntaxHighlightingData>();
     private Map<InputFile, SymbolData> symbolTablePerFile = new HashMap<InputFile, SymbolData>();
     private Map<String, Map<String, TestCase>> testCasesPerFile = new HashMap<String, Map<String, TestCase>>();
+    private Map<String, Map<String, Map<String, List<Integer>>>> coveragePerTest = new HashMap<String, Map<String, Map<String, List<Integer>>>>();
 
     @Override
     public void scanTaskCompleted(ProjectScanContainer container) {
@@ -277,6 +279,19 @@ public class BatchMediumTester {
         }
         testCasesPerFile.get(effectiveKey).put(entry.value().name(), entry.value());
       }
+
+      CoveragePerTestCache coveragePerTestCache = container.getComponentByType(CoveragePerTestCache.class);
+      for (Entry<List<Integer>> entry : coveragePerTestCache.entries()) {
+        String testFileKey = entry.key()[0].toString();
+        if (!coveragePerTest.containsKey(testFileKey)) {
+          coveragePerTest.put(testFileKey, new HashMap<String, Map<String, List<Integer>>>());
+        }
+        String testName = entry.key()[1].toString();
+        if (!coveragePerTest.get(testFileKey).containsKey(testName)) {
+          coveragePerTest.get(testFileKey).put(testName, new HashMap<String, List<Integer>>());
+        }
+        coveragePerTest.get(testFileKey).get(testName).put(entry.key()[2].toString(), entry.value());
+      }
     }
 
     public List<Issue> issues() {
@@ -310,6 +325,16 @@ public class BatchMediumTester {
 
     public TestCase testCase(InputFile inputFile, String testCaseName) {
       return testCasesPerFile.get(((DefaultInputFile) inputFile).key()).get(testCaseName);
+    }
+
+    public List<Integer> coveragePerTest(InputFile testFile, String testCaseName, InputFile mainFile) {
+      String testKey = ((DefaultInputFile) testFile).key();
+      String mainKey = ((DefaultInputFile) mainFile).key();
+      if (coveragePerTest.containsKey(testKey) && coveragePerTest.get(testKey).containsKey(testCaseName) && coveragePerTest.get(testKey).get(testCaseName).containsKey(mainKey)) {
+        return coveragePerTest.get(testKey).get(testCaseName).get(mainKey);
+      } else {
+        return Collections.emptyList();
+      }
     }
 
     /**

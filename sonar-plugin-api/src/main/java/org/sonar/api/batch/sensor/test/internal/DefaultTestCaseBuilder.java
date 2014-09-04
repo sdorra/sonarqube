@@ -26,6 +26,8 @@ import org.sonar.api.batch.sensor.test.TestCase.Type;
 import org.sonar.api.batch.sensor.test.TestCaseBuilder;
 import org.sonar.api.batch.sensor.test.TestPlanBuilder;
 
+import javax.annotation.Nullable;
+
 public class DefaultTestCaseBuilder implements TestCaseBuilder {
 
   final TestPlanBuilder parent;
@@ -56,8 +58,7 @@ public class DefaultTestCaseBuilder implements TestCaseBuilder {
   }
 
   @Override
-  public TestCaseBuilder message(String message) {
-    Preconditions.checkNotNull(message);
+  public TestCaseBuilder message(@Nullable String message) {
     this.message = message;
     return this;
   }
@@ -69,8 +70,7 @@ public class DefaultTestCaseBuilder implements TestCaseBuilder {
   }
 
   @Override
-  public TestCaseBuilder stackTrace(String stackTrace) {
-    Preconditions.checkNotNull(stackTrace);
+  public TestCaseBuilder stackTrace(@Nullable String stackTrace) {
     this.stackTrace = stackTrace;
     return this;
   }

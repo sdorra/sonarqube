@@ -47,7 +47,10 @@ import org.sonar.api.resources.Qualifiers;
 import org.sonar.api.resources.Resource;
 import org.sonar.api.resources.Scopes;
 import org.sonar.api.rule.RuleKey;
+import org.sonar.api.test.MutableTestCase;
 import org.sonar.api.test.MutableTestPlan;
+import org.sonar.api.test.MutableTestable;
+import org.sonar.api.test.Testable;
 import org.sonar.batch.duplication.BlockCache;
 import org.sonar.batch.duplication.DuplicationCache;
 import org.sonar.batch.index.ComponentDataCache;
@@ -55,6 +58,7 @@ import org.sonar.batch.scan2.BaseSensorContext;
 import org.sonar.batch.test.DefaultTestPlanBuilder;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * Implements {@link SensorContext} but forward everything to {@link org.sonar.api.batch.SensorContext} for backward compatibility.
@@ -218,6 +222,33 @@ public class SensorContextAdaptor extends BaseSensorContext {
   @Override
   public TestPlanBuilder testPlanBuilder(InputFile testFile) {
     Preconditions.checkArgument(testFile.type() == Type.TEST, "Should be a test file: " + testFile);
+    File testRes = getTestResource(testFile);
+    MutableTestPlan testPlan = perspectives.as(MutableTestPlan.class, testRes);
+    return new DefaultTestPlanBuilder(testFile, null, testPlan);
+  }
+
+  @Override
+  public void saveCoveragePerTest(InputFile testFile, String testCaseName, InputFile coveredFile, List<Integer> coveredLines) {
+    Preconditions.checkArgument(testFile.type() == Type.TEST, "Should be a test file: " + testFile);
+    Preconditions.checkArgument(coveredFile.type() == Type.MAIN, "Should be a main file: " + coveredFile);
+    File testRes = getTestResource(testFile);
+    File mainRes = getMainResource(coveredFile);
+    Testable testAbleFile = perspectives.as(MutableTestable.class, mainRes);
+    if (testAbleFile != null) {
+      MutableTestPlan testPlan = perspectives.as(MutableTestPlan.class, testRes);
+      if (testPlan != null) {
+        for (MutableTestCase testCase : testPlan.testCasesByName(testCaseName)) {
+          testCase.setCoverageBlock(testAbleFile, coveredLines);
+        }
+      } else {
+        throw new IllegalStateException("Unable to get MutableTestPlan perspective from " + testRes);
+      }
+    } else {
+      throw new IllegalStateException("Unable to get MutableTestable perspective from " + mainRes);
+    }
+  }
+
+  private File getTestResource(InputFile testFile) {
     File testRes = File.create(testFile.relativePath());
     testRes.setQualifier(Qualifiers.UNIT_TEST_FILE);
     // Reload
@@ -225,8 +256,17 @@ public class SensorContextAdaptor extends BaseSensorContext {
     if (testRes == null) {
       throw new IllegalArgumentException("Provided input file is not indexed or not a test file: " + testFile);
     }
-    MutableTestPlan testPlan = perspectives.as(MutableTestPlan.class, testRes);
-    return new DefaultTestPlanBuilder(testFile, null, testPlan);
+    return testRes;
+  }
+
+  private File getMainResource(InputFile mainFile) {
+    File mainRes = File.create(mainFile.relativePath());
+    // Reload
+    mainRes = sensorContext.getResource(mainRes);
+    if (mainRes == null) {
+      throw new IllegalArgumentException("Provided input file is not indexed or not a main file: " + mainRes);
+    }
+    return mainRes;
   }
 
 }

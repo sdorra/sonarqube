@@ -20,6 +20,7 @@
 package org.sonar.xoo;
 
 import org.sonar.api.SonarPlugin;
+import org.sonar.xoo.lang.CoveragePerTestSensor;
 import org.sonar.xoo.lang.MeasureSensor;
 import org.sonar.xoo.lang.ScmActivitySensor;
 import org.sonar.xoo.lang.SymbolReferencesSensor;
@@ -57,6 +58,7 @@ public class XooPlugin extends SonarPlugin {
       SymbolReferencesSensor.class,
       XooTokenizerSensor.class,
       TestCaseSensor.class,
+      CoveragePerTestSensor.class,
 
       OneIssuePerLineSensor.class,
       OneIssueOnDirPerFileSensor.class,

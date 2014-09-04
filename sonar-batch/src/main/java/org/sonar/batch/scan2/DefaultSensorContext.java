@@ -32,6 +32,7 @@ import org.sonar.api.batch.sensor.issue.Issue;
 import org.sonar.api.batch.sensor.issue.internal.DefaultIssue;
 import org.sonar.api.batch.sensor.measure.Measure;
 import org.sonar.api.batch.sensor.measure.internal.DefaultMeasure;
+import org.sonar.api.batch.sensor.test.TestCase;
 import org.sonar.api.batch.sensor.test.TestPlanBuilder;
 import org.sonar.api.config.Settings;
 import org.sonar.api.rule.RuleKey;
@@ -41,11 +42,13 @@ import org.sonar.batch.duplication.DuplicationCache;
 import org.sonar.batch.index.ComponentDataCache;
 import org.sonar.batch.issue.IssueFilters;
 import org.sonar.batch.scan.SensorContextAdaptor;
+import org.sonar.batch.test.CoveragePerTestCache;
 import org.sonar.batch.test.DefaultTestPlanBuilder;
 import org.sonar.batch.test.TestCaseCache;
 import org.sonar.core.component.ComponentKeys;
 
 import java.io.Serializable;
+import java.util.List;
 
 public class DefaultSensorContext extends BaseSensorContext {
 
@@ -55,10 +58,11 @@ public class DefaultSensorContext extends BaseSensorContext {
   private final ActiveRules activeRules;
   private final IssueFilters issueFilters;
   private final TestCaseCache testCaseCache;
+  private final CoveragePerTestCache coveragePerTestCache;
 
   public DefaultSensorContext(ProjectDefinition def, AnalyzerMeasureCache measureCache, AnalyzerIssueCache issueCache,
     Settings settings, FileSystem fs, ActiveRules activeRules, IssueFilters issueFilters, ComponentDataCache componentDataCache,
-    BlockCache blockCache, DuplicationCache duplicationCache, TestCaseCache testCaseCache) {
+    BlockCache blockCache, DuplicationCache duplicationCache, TestCaseCache testCaseCache, CoveragePerTestCache coveragePerTestCache) {
     super(settings, fs, activeRules, componentDataCache, blockCache, duplicationCache);
     this.def = def;
     this.measureCache = measureCache;
@@ -66,6 +70,7 @@ public class DefaultSensorContext extends BaseSensorContext {
     this.activeRules = activeRules;
     this.issueFilters = issueFilters;
     this.testCaseCache = testCaseCache;
+    this.coveragePerTestCache = coveragePerTestCache;
   }
 
   @Override
@@ -140,6 +145,15 @@ public class DefaultSensorContext extends BaseSensorContext {
   public TestPlanBuilder testPlanBuilder(InputFile testFile) {
     Preconditions.checkArgument(testFile.type() == Type.TEST, "Should be a test file: " + testFile);
     return new DefaultTestPlanBuilder(testFile, testCaseCache, null);
+  }
+
+  @Override
+  public void saveCoveragePerTest(InputFile testFile, String testCaseName, InputFile coveredFile, List<Integer> coveredLines) {
+    Preconditions.checkArgument(testFile.type() == Type.TEST, "Should be a test file: " + testFile);
+    Preconditions.checkArgument(coveredFile.type() == Type.MAIN, "Should be a main file: " + coveredFile);
+    TestCase testCase = testCaseCache.get(testFile, testCaseName);
+    Preconditions.checkState(testCase != null, "No test case found on " + testFile + " with name " + testCaseName);
+    coveragePerTestCache.put(testFile, testCase, coveredFile, coveredLines);
   }
 
 }

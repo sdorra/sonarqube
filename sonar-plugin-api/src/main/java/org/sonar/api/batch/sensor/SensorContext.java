@@ -154,10 +154,21 @@ public interface SensorContext {
    */
   void saveDuplications(InputFile inputFile, List<DuplicationGroup> duplications);
 
+  // ------------ DUPLICATIONS ------------
+
   /**
    * Create a new test plan for the given test file.
    * @param testFile An {@link InputFile} with type {@link InputFile.Type#TEST}
    */
   TestPlanBuilder testPlanBuilder(InputFile testFile);
+
+  /**
+   * Register coverage of a given test case on another main file. TestCase should have been registered using {@link #testPlanBuilder(InputFile)}
+   * @param testFile test file containing the test case
+   * @param testCaseName name of the test case
+   * @param coveredFile main file that is covered
+   * @param coveredLines list of covered lines
+   */
+  void saveCoveragePerTest(InputFile testFile, String testCaseName, InputFile coveredFile, List<Integer> coveredLines);
 
 }

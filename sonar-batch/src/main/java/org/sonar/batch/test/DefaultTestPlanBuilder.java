@@ -19,7 +19,8 @@
  */
 package org.sonar.batch.test;
 
-import com.google.inject.internal.util.Preconditions;
+import com.google.common.base.Preconditions;
+import org.apache.commons.lang.StringUtils;
 import org.sonar.api.batch.fs.InputFile;
 import org.sonar.api.batch.sensor.test.TestCase;
 import org.sonar.api.batch.sensor.test.TestCaseBuilder;
@@ -47,7 +48,7 @@ public class DefaultTestPlanBuilder implements TestPlanBuilder {
 
   @Override
   public TestCaseBuilder newTestCase(String testName) {
-    Preconditions.checkNotNull(testName);
+    Preconditions.checkArgument(StringUtils.isNotBlank(testName));
     return new DefaultTestCaseBuilder(this, testName);
   }
 

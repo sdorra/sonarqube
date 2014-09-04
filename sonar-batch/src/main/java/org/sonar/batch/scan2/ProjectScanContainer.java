@@ -47,6 +47,7 @@ import org.sonar.batch.scan.ProjectSettings;
 import org.sonar.batch.scan.filesystem.InputPathCache;
 import org.sonar.batch.scan.maven.FakeMavenPluginExecutor;
 import org.sonar.batch.scan.maven.MavenPluginExecutor;
+import org.sonar.batch.test.CoveragePerTestCache;
 import org.sonar.batch.test.TestCaseCache;
 
 public class ProjectScanContainer extends ComponentContainer {
@@ -117,6 +118,7 @@ public class ProjectScanContainer extends ComponentContainer {
 
       // Tests
       TestCaseCache.class,
+      CoveragePerTestCache.class,
 
       ScanTaskObservers.class);
   }

@@ -32,7 +32,6 @@ import org.sonar.api.batch.sensor.SensorContext;
 import org.sonar.api.batch.sensor.SensorDescriptor;
 import org.sonar.api.batch.sensor.test.TestCase;
 import org.sonar.api.batch.sensor.test.TestPlanBuilder;
-import org.sonar.api.measures.CoreMetrics;
 import org.sonar.xoo.Xoo;
 
 import java.io.File;
@@ -49,7 +48,7 @@ public class TestCaseSensor implements Sensor {
 
   private static final String TESTPLAN_EXTENSION = ".testplan";
 
-  private void processFileHighlighting(InputFile inputFile, SensorContext context) {
+  private void processFileTestPlan(InputFile inputFile, SensorContext context) {
     File ioFile = inputFile.file();
     File testPlanFile = new File(ioFile.getParentFile(), ioFile.getName() + TESTPLAN_EXTENSION);
     if (testPlanFile.exists()) {
@@ -97,7 +96,6 @@ public class TestCaseSensor implements Sensor {
   public void describe(SensorDescriptor descriptor) {
     descriptor
       .name("Xoo TestPlan Sensor")
-      .provides(CoreMetrics.LINES)
       .workOnLanguages(Xoo.KEY)
       .workOnFileTypes(InputFile.Type.TEST);
   }
@@ -107,7 +105,7 @@ public class TestCaseSensor implements Sensor {
     FileSystem fs = context.fileSystem();
     FilePredicates p = fs.predicates();
     for (InputFile file : fs.inputFiles(p.and(p.hasLanguages(Xoo.KEY), p.hasType(InputFile.Type.TEST)))) {
-      processFileHighlighting(file, context);
+      processFileTestPlan(file, context);
     }
   }
 }

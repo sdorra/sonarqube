@@ -24,40 +24,42 @@ import org.sonar.api.BatchComponent;
 import org.sonar.api.batch.fs.InputFile;
 import org.sonar.api.batch.fs.internal.DefaultInputFile;
 import org.sonar.api.batch.sensor.test.TestCase;
-import org.sonar.api.batch.sensor.test.internal.DefaultTestCase;
 import org.sonar.batch.index.Cache;
 import org.sonar.batch.index.Cache.Entry;
 import org.sonar.batch.index.Caches;
 
 import javax.annotation.CheckForNull;
 
+import java.util.List;
+
 /**
- * Cache of all TestCases. This cache is shared amongst all project modules.
+ * Cache of coverage per test. This cache is shared amongst all project modules.
  */
-public class TestCaseCache implements BatchComponent {
+public class CoveragePerTestCache implements BatchComponent {
 
-  private final Cache<TestCase> cache;
+  private final Cache<List<Integer>> cache;
 
-  public TestCaseCache(Caches caches) {
-    caches.registerValueCoder(DefaultTestCase.class, new DefaultTestCaseValueCoder());
-    cache = caches.createCache("testCases");
+  public CoveragePerTestCache(Caches caches) {
+    cache = caches.createCache("coveragePerTest");
   }
 
-  public Iterable<Entry<TestCase>> entries() {
+  public Iterable<Entry<List<Integer>>> entries() {
     return cache.entries();
   }
 
   @CheckForNull
-  public TestCase get(InputFile testFile, String testCaseName) {
+  public List<Integer> getCoveredLines(InputFile testFile, String testCaseName, InputFile mainFile) {
     Preconditions.checkNotNull(testFile);
     Preconditions.checkNotNull(testCaseName);
-    return cache.get(((DefaultInputFile) testFile).key(), testCaseName);
+    return cache.get(((DefaultInputFile) testFile).key(), testCaseName, ((DefaultInputFile) mainFile).key());
   }
 
-  public TestCaseCache put(InputFile testFile, TestCase testCase) {
+  public CoveragePerTestCache put(InputFile testFile, TestCase testCase, InputFile mainFile, List<Integer> coveredLines) {
     Preconditions.checkNotNull(testFile);
     Preconditions.checkNotNull(testCase);
-    cache.put(((DefaultInputFile) testFile).key(), testCase.name(), testCase);
+    Preconditions.checkNotNull(mainFile);
+    Preconditions.checkNotNull(coveredLines);
+    cache.put(((DefaultInputFile) testFile).key(), testCase.name(), ((DefaultInputFile) mainFile).key(), coveredLines);
     return this;
   }
 
