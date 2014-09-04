@@ -233,17 +233,29 @@ public class SensorContextAdaptor extends BaseSensorContext {
   }
 
   @Override
-  public void saveCoveragePerTest(InputFile testFile, String testCaseName, InputFile coveredFile, List<Integer> coveredLines) {
-    Preconditions.checkArgument(testFile.type() == Type.TEST, "Should be a test file: " + testFile);
-    Preconditions.checkArgument(coveredFile.type() == Type.MAIN, "Should be a main file: " + coveredFile);
+  public TestCase getTestCase(InputFile testFile, String testCaseName) {
     File testRes = getTestResource(testFile);
+    MutableTestPlan testPlan = perspectives.as(MutableTestPlan.class, testRes);
+    Iterable<MutableTestCase> testCases = testPlan.testCasesByName(testCaseName);
+    if (testCases.iterator().hasNext()) {
+      MutableTestCase testCase = testCases.iterator().next();
+      return new DefaultTestCase(testFile, testCaseName, testCase.durationInMs(), TestCase.Status.of(testCase.status().name()), testCase.message(), TestCase.Type.valueOf(testCase
+        .type()), testCase.stackTrace());
+    }
+    return null;
+  }
+
+  @Override
+  public void saveCoveragePerTest(TestCase testCase, InputFile coveredFile, List<Integer> coveredLines) {
+    Preconditions.checkArgument(coveredFile.type() == Type.MAIN, "Should be a main file: " + coveredFile);
+    File testRes = getTestResource(((DefaultTestCase) testCase).testFile());
     File mainRes = getMainResource(coveredFile);
     Testable testAbleFile = perspectives.as(MutableTestable.class, mainRes);
     if (testAbleFile != null) {
       MutableTestPlan testPlan = perspectives.as(MutableTestPlan.class, testRes);
       if (testPlan != null) {
-        for (MutableTestCase testCase : testPlan.testCasesByName(testCaseName)) {
-          testCase.setCoverageBlock(testAbleFile, coveredLines);
+        for (MutableTestCase mutableTestCase : testPlan.testCasesByName(testCase.name())) {
+          mutableTestCase.setCoverageBlock(testAbleFile, coveredLines);
         }
       } else {
         throw new IllegalStateException("Unable to get MutableTestPlan perspective from " + testRes);

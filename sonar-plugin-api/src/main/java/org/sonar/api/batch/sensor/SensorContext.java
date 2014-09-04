@@ -168,8 +168,17 @@ public interface SensorContext {
   /**
    * Add a new test case.
    * Use {@link #testCaseBuilder(InputFile, String)} to create a new {@link TestCase}
+   * @throws IllegalArgumentException if a test case with same name was already added on the same file.
+   * @since 5.0
    */
   void addTestCase(TestCase testCase);
+
+  /**
+   * Get a {@link TestCase} that has been previously added to the context with {@link #addTestCase(TestCase)}.
+   * @since 5.0
+   */
+  @CheckForNull
+  TestCase getTestCase(InputFile testFile, String testCaseName);
 
   /**
    * Register coverage of a given test case on another main file. TestCase should have been registered using {@link #testPlanBuilder(InputFile)}
@@ -179,6 +188,6 @@ public interface SensorContext {
    * @param coveredLines list of covered lines
    * @since 5.0
    */
-  void saveCoveragePerTest(InputFile testFile, String testCaseName, InputFile coveredFile, List<Integer> coveredLines);
+  void saveCoveragePerTest(TestCase testCase, InputFile coveredFile, List<Integer> coveredLines);
 
 }

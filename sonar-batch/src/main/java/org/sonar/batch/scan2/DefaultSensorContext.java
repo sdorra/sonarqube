@@ -142,16 +142,22 @@ public class DefaultSensorContext extends BaseSensorContext {
 
   @Override
   public void addTestCase(TestCase testCase) {
+    if (testCaseCache.contains(((DefaultTestCase) testCase).testFile(), testCase.name())) {
+      throw new IllegalArgumentException("There is already a test case with the same name: " + testCase.name());
+    }
     testCaseCache.put(((DefaultTestCase) testCase).testFile(), testCase);
   }
 
   @Override
-  public void saveCoveragePerTest(InputFile testFile, String testCaseName, InputFile coveredFile, List<Integer> coveredLines) {
-    Preconditions.checkArgument(testFile.type() == Type.TEST, "Should be a test file: " + testFile);
+  public TestCase getTestCase(InputFile testFile, String testCaseName) {
+    return testCaseCache.get(testFile, testCaseName);
+  }
+
+  @Override
+  public void saveCoveragePerTest(TestCase testCase, InputFile coveredFile, List<Integer> coveredLines) {
+    Preconditions.checkNotNull(testCase);
     Preconditions.checkArgument(coveredFile.type() == Type.MAIN, "Should be a main file: " + coveredFile);
-    TestCase testCase = testCaseCache.get(testFile, testCaseName);
-    Preconditions.checkState(testCase != null, "No test case found on " + testFile + " with name " + testCaseName);
-    coveragePerTestCache.put(testFile, testCase, coveredFile, coveredLines);
+    coveragePerTestCache.put(testCase, coveredFile, coveredLines);
   }
 
 }

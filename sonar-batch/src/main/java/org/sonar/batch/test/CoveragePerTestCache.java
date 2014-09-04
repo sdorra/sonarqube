@@ -24,6 +24,7 @@ import org.sonar.api.BatchComponent;
 import org.sonar.api.batch.fs.InputFile;
 import org.sonar.api.batch.fs.internal.DefaultInputFile;
 import org.sonar.api.batch.sensor.test.TestCase;
+import org.sonar.api.batch.sensor.test.internal.DefaultTestCase;
 import org.sonar.batch.index.Cache;
 import org.sonar.batch.index.Cache.Entry;
 import org.sonar.batch.index.Caches;
@@ -54,12 +55,11 @@ public class CoveragePerTestCache implements BatchComponent {
     return cache.get(((DefaultInputFile) testFile).key(), testCaseName, ((DefaultInputFile) mainFile).key());
   }
 
-  public CoveragePerTestCache put(InputFile testFile, TestCase testCase, InputFile mainFile, List<Integer> coveredLines) {
-    Preconditions.checkNotNull(testFile);
+  public CoveragePerTestCache put(TestCase testCase, InputFile mainFile, List<Integer> coveredLines) {
     Preconditions.checkNotNull(testCase);
     Preconditions.checkNotNull(mainFile);
     Preconditions.checkNotNull(coveredLines);
-    cache.put(((DefaultInputFile) testFile).key(), testCase.name(), ((DefaultInputFile) mainFile).key(), coveredLines);
+    cache.put(((DefaultInputFile) ((DefaultTestCase) testCase).testFile()).key(), testCase.name(), ((DefaultInputFile) mainFile).key(), coveredLines);
     return this;
   }
 

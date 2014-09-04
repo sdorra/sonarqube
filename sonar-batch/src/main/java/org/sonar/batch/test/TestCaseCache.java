@@ -62,4 +62,8 @@ public class TestCaseCache implements BatchComponent {
     return this;
   }
 
+  public boolean contains(InputFile testFile, String name) {
+    return cache.containsKey(((DefaultInputFile) testFile).key(), name);
+  }
+
 }
