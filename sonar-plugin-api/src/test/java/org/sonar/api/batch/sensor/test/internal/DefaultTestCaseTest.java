@@ -20,6 +20,8 @@
 package org.sonar.api.batch.sensor.test.internal;
 
 import org.junit.Test;
+import org.sonar.api.batch.fs.InputFile;
+import org.sonar.api.batch.fs.internal.DefaultInputFile;
 import org.sonar.api.batch.sensor.test.TestCase.Status;
 import org.sonar.api.batch.sensor.test.TestCase.Type;
 
@@ -27,9 +29,11 @@ import static org.fest.assertions.Assertions.assertThat;
 
 public class DefaultTestCaseTest {
 
+  private InputFile parent = new DefaultInputFile("foo", "src/Foo.php");
+
   @Test
   public void testDefaultTestCaseTest() {
-    DefaultTestCase testCase1 = new DefaultTestCase("myTest", 1L, Status.ERROR, "message", Type.UNIT, "stack");
+    DefaultTestCase testCase1 = new DefaultTestCase(parent, "myTest", 1L, Status.ERROR, "message", Type.UNIT, "stack");
 
     assertThat(testCase1.name()).isEqualTo("myTest");
     assertThat(testCase1.durationInMs()).isEqualTo(1L);
@@ -41,9 +45,9 @@ public class DefaultTestCaseTest {
 
   @Test
   public void testEqualsHashCodeToString() {
-    DefaultTestCase testCase1 = new DefaultTestCase("myTest", 1L, Status.ERROR, "message", Type.UNIT, "stack");
-    DefaultTestCase testCase1a = new DefaultTestCase("myTest", 1L, Status.ERROR, "message", Type.UNIT, "stack");
-    DefaultTestCase testCase2 = new DefaultTestCase("myTest2", 2L, Status.FAILURE, "message2", Type.INTEGRATION, null);
+    DefaultTestCase testCase1 = new DefaultTestCase(parent, "myTest", 1L, Status.ERROR, "message", Type.UNIT, "stack");
+    DefaultTestCase testCase1a = new DefaultTestCase(parent, "myTest", 1L, Status.ERROR, "message", Type.UNIT, "stack");
+    DefaultTestCase testCase2 = new DefaultTestCase(new DefaultInputFile("foo2", "src/Foo.php"), "myTest2", 2L, Status.FAILURE, "message2", Type.INTEGRATION, null);
 
     assertThat(testCase1).isEqualTo(testCase1);
     assertThat(testCase1).isEqualTo(testCase1a);
@@ -51,7 +55,8 @@ public class DefaultTestCaseTest {
     assertThat(testCase1).isNotEqualTo(null);
     assertThat(testCase1).isNotEqualTo("foo");
 
-    assertThat(testCase1.toString()).isEqualTo("DefaultTestCase[name=myTest,duration=1,status=ERROR,message=message,type=UNIT,stackTrace=stack]");
+    assertThat(testCase1.toString()).isEqualTo(
+      "DefaultTestCase[file=[moduleKey=foo, relative=src/Foo.php, abs=null],name=myTest,duration=1,status=ERROR,message=message,type=UNIT,stackTrace=stack]");
     assertThat(testCase1.hashCode()).isEqualTo(testCase1a.hashCode());
   }
 

@@ -23,7 +23,7 @@ import org.sonar.api.batch.sensor.test.TestCase.Status;
 import org.sonar.api.batch.sensor.test.TestCase.Type;
 
 /**
- * Builder to create a new TestCase.
+ * Builder to create a new TestCase on a test file.
  * @since 5.0
  */
 public interface TestCaseBuilder {
@@ -54,8 +54,8 @@ public interface TestCaseBuilder {
   TestCaseBuilder stackTrace(String stackTrace);
 
   /**
-   * Add the test to the test plan.
+   * Call this method only once when your are done with defining the test case.
    */
-  TestPlanBuilder add();
+  TestCase build();
 
 }

@@ -33,7 +33,8 @@ import org.sonar.api.batch.sensor.issue.IssueBuilder;
 import org.sonar.api.batch.sensor.measure.Measure;
 import org.sonar.api.batch.sensor.measure.MeasureBuilder;
 import org.sonar.api.batch.sensor.symbol.SymbolTableBuilder;
-import org.sonar.api.batch.sensor.test.TestPlanBuilder;
+import org.sonar.api.batch.sensor.test.TestCase;
+import org.sonar.api.batch.sensor.test.TestCaseBuilder;
 import org.sonar.api.config.Settings;
 
 import javax.annotation.CheckForNull;
@@ -154,13 +155,21 @@ public interface SensorContext {
    */
   void saveDuplications(InputFile inputFile, List<DuplicationGroup> duplications);
 
-  // ------------ DUPLICATIONS ------------
+  // ------------ TESTS ------------
 
   /**
-   * Create a new test plan for the given test file.
+   * Create a new test case for the given test file.
    * @param testFile An {@link InputFile} with type {@link InputFile.Type#TEST}
+   * @param testCaseName name of the test case
+   * @since 5.0
    */
-  TestPlanBuilder testPlanBuilder(InputFile testFile);
+  TestCaseBuilder testCaseBuilder(InputFile testFile, String testCaseName);
+
+  /**
+   * Add a new test case.
+   * Use {@link #testCaseBuilder(InputFile, String)} to create a new {@link TestCase}
+   */
+  void addTestCase(TestCase testCase);
 
   /**
    * Register coverage of a given test case on another main file. TestCase should have been registered using {@link #testPlanBuilder(InputFile)}
@@ -168,6 +177,7 @@ public interface SensorContext {
    * @param testCaseName name of the test case
    * @param coveredFile main file that is covered
    * @param coveredLines list of covered lines
+   * @since 5.0
    */
   void saveCoveragePerTest(InputFile testFile, String testCaseName, InputFile coveredFile, List<Integer> coveredLines);
 

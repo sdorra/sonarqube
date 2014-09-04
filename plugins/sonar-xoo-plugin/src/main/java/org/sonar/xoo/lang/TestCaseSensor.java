@@ -31,7 +31,6 @@ import org.sonar.api.batch.sensor.Sensor;
 import org.sonar.api.batch.sensor.SensorContext;
 import org.sonar.api.batch.sensor.SensorDescriptor;
 import org.sonar.api.batch.sensor.test.TestCase;
-import org.sonar.api.batch.sensor.test.TestPlanBuilder;
 import org.sonar.xoo.Xoo;
 
 import java.io.File;
@@ -56,22 +55,20 @@ public class TestCaseSensor implements Sensor {
       try {
         List<String> lines = FileUtils.readLines(testPlanFile, context.fileSystem().encoding().name());
         int lineNumber = 0;
-        TestPlanBuilder testPlanBuilder = context.testPlanBuilder(inputFile);
         for (String line : lines) {
           lineNumber++;
           if (StringUtils.isBlank(line) || line.startsWith("#")) {
             continue;
           }
-          processLine(testPlanFile, lineNumber, testPlanBuilder, line);
+          processLine(testPlanFile, lineNumber, line, context, inputFile);
         }
-        testPlanBuilder.done();
       } catch (IOException e) {
         throw new IllegalStateException(e);
       }
     }
   }
 
-  private void processLine(File testplanFile, int lineNumber, TestPlanBuilder testPlanBuilder, String line) {
+  private void processLine(File testplanFile, int lineNumber, String line, SensorContext context, InputFile testFile) {
     try {
       Iterator<String> split = Splitter.on(":").split(line).iterator();
       String name = split.next();
@@ -80,13 +77,13 @@ public class TestCaseSensor implements Sensor {
       String message = split.next();
       String stack = split.next();
       long duration = Long.parseLong(split.next());
-      testPlanBuilder.newTestCase(name)
+      context.addTestCase(context.testCaseBuilder(testFile, name)
         .type(TestCase.Type.valueOf(type))
         .status(TestCase.Status.valueOf(status))
         .message(message)
         .stackTrace(stack)
         .durationInMs(duration)
-        .add();
+        .build());
     } catch (Exception e) {
       throw new IllegalStateException("Error processing line " + lineNumber + " of file " + testplanFile.getAbsolutePath(), e);
     }

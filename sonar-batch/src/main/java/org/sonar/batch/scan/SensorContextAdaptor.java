@@ -31,7 +31,8 @@ import org.sonar.api.batch.rule.ActiveRules;
 import org.sonar.api.batch.sensor.SensorContext;
 import org.sonar.api.batch.sensor.issue.Issue;
 import org.sonar.api.batch.sensor.measure.Measure;
-import org.sonar.api.batch.sensor.test.TestPlanBuilder;
+import org.sonar.api.batch.sensor.test.TestCase;
+import org.sonar.api.batch.sensor.test.internal.DefaultTestCase;
 import org.sonar.api.component.ResourcePerspectives;
 import org.sonar.api.config.Settings;
 import org.sonar.api.issue.Issuable;
@@ -55,7 +56,6 @@ import org.sonar.batch.duplication.BlockCache;
 import org.sonar.batch.duplication.DuplicationCache;
 import org.sonar.batch.index.ComponentDataCache;
 import org.sonar.batch.scan2.BaseSensorContext;
-import org.sonar.batch.test.DefaultTestPlanBuilder;
 
 import java.io.Serializable;
 import java.util.List;
@@ -220,11 +220,16 @@ public class SensorContextAdaptor extends BaseSensorContext {
   }
 
   @Override
-  public TestPlanBuilder testPlanBuilder(InputFile testFile) {
-    Preconditions.checkArgument(testFile.type() == Type.TEST, "Should be a test file: " + testFile);
-    File testRes = getTestResource(testFile);
+  public void addTestCase(TestCase testCase) {
+    File testRes = getTestResource(((DefaultTestCase) testCase).testFile());
     MutableTestPlan testPlan = perspectives.as(MutableTestPlan.class, testRes);
-    return new DefaultTestPlanBuilder(testFile, null, testPlan);
+    testPlan
+      .addTestCase(testCase.name())
+      .setDurationInMs(testCase.durationInMs())
+      .setType(testCase.type().name())
+      .setStatus(org.sonar.api.test.TestCase.Status.valueOf(testCase.status().name()))
+      .setMessage(testCase.message())
+      .setStackTrace(testCase.stackTrace());
   }
 
   @Override

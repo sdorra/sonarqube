@@ -22,15 +22,26 @@ package org.sonar.batch.test;
 import com.persistit.Value;
 import com.persistit.encoding.CoderContext;
 import com.persistit.encoding.ValueCoder;
+import org.sonar.api.batch.fs.InputFile;
+import org.sonar.api.batch.fs.internal.DefaultInputFile;
 import org.sonar.api.batch.sensor.test.TestCase;
 import org.sonar.api.batch.sensor.test.internal.DefaultTestCase;
+import org.sonar.batch.scan.filesystem.InputPathCache;
 
 import javax.annotation.Nullable;
 
 class DefaultTestCaseValueCoder implements ValueCoder {
 
+  private InputPathCache inputPathCache;
+
+  public DefaultTestCaseValueCoder(InputPathCache inputPathCache) {
+    this.inputPathCache = inputPathCache;
+  }
+
   public void put(Value value, Object object, CoderContext context) {
     DefaultTestCase t = (DefaultTestCase) object;
+    value.putUTF(((DefaultInputFile) t.testFile()).moduleKey());
+    value.putUTF(((DefaultInputFile) t.testFile()).relativePath());
     value.putUTF(t.name());
     putUTFOrNull(value, t.message());
     putUTFOrNull(value, t.stackTrace());
@@ -49,12 +60,18 @@ class DefaultTestCaseValueCoder implements ValueCoder {
   }
 
   public Object get(Value value, Class clazz, CoderContext context) {
+    String moduleKey = value.getString();
+    String relativePath = value.getString();
+    InputFile testFile = inputPathCache.getFile(moduleKey, relativePath);
+    if (testFile == null) {
+      throw new IllegalStateException("Unable to load InputFile " + moduleKey + ":" + relativePath);
+    }
     String name = value.getString();
     String message = value.getString();
     String stack = value.getString();
     long duration = value.getLong();
     TestCase.Type type = TestCase.Type.values()[value.getInt()];
     TestCase.Status status = TestCase.Status.values()[value.getInt()];
-    return new DefaultTestCase(name, duration != -1 ? duration : null, status, message, type, stack);
+    return new DefaultTestCase(testFile, name, duration != -1 ? duration : null, status, message, type, stack);
   }
 }

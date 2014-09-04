@@ -28,6 +28,7 @@ import org.sonar.api.batch.sensor.test.internal.DefaultTestCase;
 import org.sonar.batch.index.Cache;
 import org.sonar.batch.index.Cache.Entry;
 import org.sonar.batch.index.Caches;
+import org.sonar.batch.scan.filesystem.InputPathCache;
 
 import javax.annotation.CheckForNull;
 
@@ -38,8 +39,8 @@ public class TestCaseCache implements BatchComponent {
 
   private final Cache<TestCase> cache;
 
-  public TestCaseCache(Caches caches) {
-    caches.registerValueCoder(DefaultTestCase.class, new DefaultTestCaseValueCoder());
+  public TestCaseCache(Caches caches, InputPathCache inputPathCache) {
+    caches.registerValueCoder(DefaultTestCase.class, new DefaultTestCaseValueCoder(inputPathCache));
     cache = caches.createCache("testCases");
   }
 

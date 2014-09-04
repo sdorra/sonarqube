@@ -33,7 +33,7 @@ import org.sonar.api.batch.sensor.issue.internal.DefaultIssue;
 import org.sonar.api.batch.sensor.measure.Measure;
 import org.sonar.api.batch.sensor.measure.internal.DefaultMeasure;
 import org.sonar.api.batch.sensor.test.TestCase;
-import org.sonar.api.batch.sensor.test.TestPlanBuilder;
+import org.sonar.api.batch.sensor.test.internal.DefaultTestCase;
 import org.sonar.api.config.Settings;
 import org.sonar.api.rule.RuleKey;
 import org.sonar.api.utils.MessageException;
@@ -43,7 +43,6 @@ import org.sonar.batch.index.ComponentDataCache;
 import org.sonar.batch.issue.IssueFilters;
 import org.sonar.batch.scan.SensorContextAdaptor;
 import org.sonar.batch.test.CoveragePerTestCache;
-import org.sonar.batch.test.DefaultTestPlanBuilder;
 import org.sonar.batch.test.TestCaseCache;
 import org.sonar.core.component.ComponentKeys;
 
@@ -142,9 +141,8 @@ public class DefaultSensorContext extends BaseSensorContext {
   }
 
   @Override
-  public TestPlanBuilder testPlanBuilder(InputFile testFile) {
-    Preconditions.checkArgument(testFile.type() == Type.TEST, "Should be a test file: " + testFile);
-    return new DefaultTestPlanBuilder(testFile, testCaseCache, null);
+  public void addTestCase(TestCase testCase) {
+    testCaseCache.put(((DefaultTestCase) testCase).testFile(), testCase);
   }
 
   @Override

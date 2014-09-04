@@ -20,26 +20,29 @@
 package org.sonar.api.batch.sensor.test.internal;
 
 import com.google.common.base.Preconditions;
+import org.apache.commons.lang.StringUtils;
+import org.sonar.api.batch.fs.InputFile;
 import org.sonar.api.batch.sensor.test.TestCase;
 import org.sonar.api.batch.sensor.test.TestCase.Status;
 import org.sonar.api.batch.sensor.test.TestCase.Type;
 import org.sonar.api.batch.sensor.test.TestCaseBuilder;
-import org.sonar.api.batch.sensor.test.TestPlanBuilder;
 
 import javax.annotation.Nullable;
 
 public class DefaultTestCaseBuilder implements TestCaseBuilder {
 
-  final TestPlanBuilder parent;
-  final String name;
-  Long duration;
-  TestCase.Status status = Status.OK;
-  String message;
-  TestCase.Type type = Type.UNIT;
-  String stackTrace;
+  private final InputFile testFile;
+  private final String name;
+  private Long duration;
+  private TestCase.Status status = Status.OK;
+  private String message;
+  private TestCase.Type type = Type.UNIT;
+  private String stackTrace;
 
-  public DefaultTestCaseBuilder(TestPlanBuilder parent, String name) {
-    this.parent = parent;
+  public DefaultTestCaseBuilder(InputFile testFile, String name) {
+    Preconditions.checkArgument(testFile.type() == InputFile.Type.TEST, "Should be a test file: " + testFile);
+    Preconditions.checkArgument(StringUtils.isNotBlank(name), "Test name should not be blank");
+    this.testFile = testFile;
     this.name = name;
   }
 
@@ -76,9 +79,8 @@ public class DefaultTestCaseBuilder implements TestCaseBuilder {
   }
 
   @Override
-  public TestPlanBuilder add() {
-    parent.add(new DefaultTestCase(this.name, this.duration, this.status, this.message, this.type, this.stackTrace));
-    return parent;
+  public TestCase build() {
+    return new DefaultTestCase(this.testFile, this.name, this.duration, this.status, this.message, this.type, this.stackTrace);
   }
 
 }

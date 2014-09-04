@@ -22,37 +22,36 @@ package org.sonar.api.batch.sensor.test.internal;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.sonar.api.batch.fs.InputFile;
+import org.sonar.api.batch.fs.internal.DefaultInputFile;
 import org.sonar.api.batch.sensor.test.TestCase.Status;
 import org.sonar.api.batch.sensor.test.TestCase.Type;
-import org.sonar.api.batch.sensor.test.TestPlanBuilder;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
+import static org.fest.assertions.Assertions.assertThat;
 
 public class DefaultTestCaseBuilderTest {
 
   @Rule
   public ExpectedException thrown = ExpectedException.none();
 
-  private TestPlanBuilder parent = mock(TestPlanBuilder.class);
+  private InputFile parent = new DefaultInputFile("foo", "src/Foo.php").setType(InputFile.Type.TEST);
 
   @Test
   public void testBuilder() throws Exception {
     DefaultTestCaseBuilder builder = new DefaultTestCaseBuilder(parent, "myTest");
-    builder.durationInMs(1)
+    assertThat(builder.durationInMs(1)
       .message("message")
       .stackTrace("stack")
       .status(Status.ERROR)
       .type(Type.UNIT)
-      .add();
-    verify(parent).add(new DefaultTestCase("myTest", 1L, Status.ERROR, "message", Type.UNIT, "stack"));
+      .build()).isEqualTo(new DefaultTestCase(parent, "myTest", 1L, Status.ERROR, "message", Type.UNIT, "stack"));
   }
 
   @Test
   public void testBuilderWithDefaultValues() throws Exception {
     DefaultTestCaseBuilder builder = new DefaultTestCaseBuilder(parent, "myTest");
-    builder.add();
-    verify(parent).add(new DefaultTestCase("myTest", null, Status.OK, null, Type.UNIT, null));
+    assertThat(builder.build()).isEqualTo(
+      new DefaultTestCase(parent, "myTest", null, Status.OK, null, Type.UNIT, null));
   }
 
   @Test
@@ -66,7 +65,7 @@ public class DefaultTestCaseBuilderTest {
       .stackTrace("stack")
       .status(Status.ERROR)
       .type(Type.UNIT)
-      .add();
+      .build();
   }
 
 }
