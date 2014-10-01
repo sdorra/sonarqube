@@ -49,6 +49,7 @@ import org.sonar.server.issue.db.IssueDao;
 import org.sonar.server.platform.BackendCleanup;
 import org.sonar.server.rule.RuleTesting;
 import org.sonar.server.rule.db.RuleDao;
+import org.sonar.server.search.FacetValue;
 import org.sonar.server.search.IndexDefinition;
 import org.sonar.server.search.QueryContext;
 import org.sonar.server.search.Result;
@@ -666,6 +667,30 @@ public class IssueIndexMediumTest {
     }
 
     assertThat(index.countAll()).isEqualTo(numberOfIssues);
+  }
 
+  @Test
+  public void list_assignees() throws Exception {
+    db.issueDao().insert(session,
+      IssueTesting.newDto(rule, file, project).setAssignee("steph").setStatus(Issue.STATUS_OPEN),
+      IssueTesting.newDto(rule, file, project).setAssignee("simon").setStatus(Issue.STATUS_OPEN),
+      IssueTesting.newDto(rule, file, project).setStatus(Issue.STATUS_OPEN),
+      IssueTesting.newDto(rule, file, project).setAssignee("steph").setStatus(Issue.STATUS_OPEN),
+      // julien should not be returned as the issue is closed
+      IssueTesting.newDto(rule, file, project).setAssignee("julien").setStatus(Issue.STATUS_CLOSED)
+    );
+    session.commit();
+
+    List<FacetValue> results = index.listAssignees(IssueQuery.builder().statuses(newArrayList(Issue.STATUS_OPEN)).build());
+
+    assertThat(results).hasSize(3);
+    assertThat(results.get(0).getKey()).isEqualTo("steph");
+    assertThat(results.get(0).getValue()).isEqualTo(2);
+
+    assertThat(results.get(1).getKey()).isEqualTo("simon");
+    assertThat(results.get(1).getValue()).isEqualTo(1);
+
+    assertThat(results.get(2).getKey()).isEqualTo("_notAssigned_");
+    assertThat(results.get(2).getValue()).isEqualTo(1);
   }
 }
