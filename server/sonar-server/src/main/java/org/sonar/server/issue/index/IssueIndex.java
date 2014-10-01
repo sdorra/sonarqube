@@ -34,9 +34,9 @@ import org.elasticsearch.search.sort.FieldSortBuilder;
 import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.sort.SortOrder;
 import org.sonar.api.issue.Issue;
-import org.sonar.api.issue.IssueQuery;
 import org.sonar.api.web.UserRole;
 import org.sonar.core.issue.db.IssueDto;
+import org.sonar.server.issue.IssueQuery;
 import org.sonar.server.search.*;
 
 import javax.annotation.Nullable;
