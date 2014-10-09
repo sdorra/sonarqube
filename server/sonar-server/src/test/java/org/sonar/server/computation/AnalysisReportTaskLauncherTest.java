@@ -36,10 +36,12 @@ public class AnalysisReportTaskLauncherTest {
   public Timeout timeout = new Timeout(5000);
   private AnalysisReportTaskLauncher sut;
   private ComputationService service;
+  private AnalysisReportQueue queue;
 
   @Before
   public void before() {
     this.service = mock(ComputationService.class);
+    this.queue = mock(AnalysisReportQueue.class);
   }
 
   @After
@@ -49,25 +51,25 @@ public class AnalysisReportTaskLauncherTest {
 
   @Test
   public void call_findAndBook_when_launching_a_recurrent_task() {
-    sut = new AnalysisReportTaskLauncher(service, 0, 1, TimeUnit.MILLISECONDS);
+    sut = new AnalysisReportTaskLauncher(service, queue, 0, 1, TimeUnit.MILLISECONDS);
 
     sut.start();
 
     sleep();
 
-    verify(service, atLeastOnce()).findAndBookNextAvailableAnalysisReport();
+    verify(queue, atLeastOnce()).bookNextAvailable();
   }
 
   @Test
   public void call_findAndBook_when_executing_task_immediatly() {
-    sut = new AnalysisReportTaskLauncher(service, 1, 1, TimeUnit.HOURS);
+    sut = new AnalysisReportTaskLauncher(service, queue, 1, 1, TimeUnit.HOURS);
     sut.start();
 
     sut.startAnalysisTaskNow();
 
     sleep();
 
-    verify(service, atLeastOnce()).findAndBookNextAvailableAnalysisReport();
+    verify(queue, atLeastOnce()).bookNextAvailable();
   }
 
   private void sleep() {
