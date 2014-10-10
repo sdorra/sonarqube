@@ -20,8 +20,6 @@
 
 package org.sonar.server.computation;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.sonar.api.ServerComponent;
 import org.sonar.core.computation.db.AnalysisReportDto;
 import org.sonar.core.permission.GlobalPermissions;
@@ -38,8 +36,6 @@ import java.util.List;
 import static org.sonar.core.computation.db.AnalysisReportDto.Status.PENDING;
 
 public class AnalysisReportQueue implements ServerComponent {
-  private static final Logger LOG = LoggerFactory.getLogger(ComputationService.class);
-
   private final DbClient dbClient;
   private final AnalysisReportDao dao;
 
@@ -52,7 +48,6 @@ public class AnalysisReportQueue implements ServerComponent {
     UserSession.get().checkGlobalPermission(GlobalPermissions.SCAN_EXECUTION);
 
     AnalysisReportDto report = newPendingAnalysisReport(projectKey);
-
     DbSession session = dbClient.openSession(false);
     try {
       checkThatProjectExistsInDatabase(projectKey, session);

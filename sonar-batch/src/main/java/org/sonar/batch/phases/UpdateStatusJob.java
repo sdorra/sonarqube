@@ -80,7 +80,7 @@ public class UpdateStatusJob implements BatchComponent {
     } catch (Exception e) {
       throw new IllegalStateException("Unable to evict preview database: " + url, e);
     }
-    url = "/batch/upload_report?project=" + project.getEffectiveKey();
+    url = "/batch/upload_report?project=" + project.getEffectiveKey() + "&project_name=" + project.getName();
     try {
       LOG.debug("Publish results");
       server.request(url, "POST");
