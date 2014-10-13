@@ -176,7 +176,7 @@ public class IssueShowActionTest {
 
     MockUserSession.set();
     WsTester.TestRequest request = tester.newGetRequest("api/issues", "show").setParam("key", issueKey);
-    request.execute().assertJson(getClass(), "show_issue.json");
+    request.execute().assertJson(getClass(), "list_active_reports.json");
   }
 
   @Test

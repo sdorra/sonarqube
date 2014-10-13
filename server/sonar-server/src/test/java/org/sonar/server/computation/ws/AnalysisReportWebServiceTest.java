@@ -20,25 +20,30 @@
 
 package org.sonar.server.computation.ws;
 
+import org.junit.Before;
+import org.junit.Test;
 import org.sonar.api.server.ws.WebService;
+import org.sonar.server.computation.ComputationService;
+import org.sonar.server.ws.WsTester;
 
-public class AnalysisReportWebService implements WebService {
-  public static final String API_ENDPOINT = "api/analysis_reports";
+import static org.fest.assertions.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
-  private final ActiveReportsAction activeReportsAction;
+public class AnalysisReportWebServiceTest {
 
-  public AnalysisReportWebService(ActiveReportsAction activeReports) {
-    this.activeReportsAction = activeReports;
+  private WsTester tester;
+
+  @Before
+  public void setUp() throws Exception {
+    this.tester = new WsTester(new AnalysisReportWebService(new ActiveReportsAction(mock(ComputationService.class))));
   }
 
-  @Override
-  public void define(Context context) {
-    NewController controller = context
-      .createController(API_ENDPOINT)
-      .setDescription("Analysis reports processed");
+  @Test
+  public void define() throws Exception {
+    WebService.Controller controller = tester.controller(AnalysisReportWebService.API_ENDPOINT);
 
-    activeReportsAction.define(controller);
-
-    controller.done();
+    assertThat(controller).isNotNull();
+    assertThat(controller.description()).isNotEmpty();
+    assertThat(controller.actions()).hasSize(1);
   }
 }

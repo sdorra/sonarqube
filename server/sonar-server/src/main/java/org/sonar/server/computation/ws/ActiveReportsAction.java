@@ -25,6 +25,7 @@ import org.sonar.api.server.ws.Request;
 import org.sonar.api.server.ws.RequestHandler;
 import org.sonar.api.server.ws.Response;
 import org.sonar.api.server.ws.WebService;
+import org.sonar.api.utils.text.JsonWriter;
 import org.sonar.core.computation.db.AnalysisReportDto;
 import org.sonar.server.computation.ComputationService;
 
@@ -43,6 +44,26 @@ public class ActiveReportsAction implements RequestHandler {
   @Override
   public void handle(Request request, Response response) throws Exception {
     List<AnalysisReportDto> reports = service.findAllUnfinishedAnalysisReports();
+
+    JsonWriter json = response.newJsonWriter().beginObject();
+    writeReports(reports, json);
+    json.endObject();
+    json.close();
+  }
+
+  private void writeReports(List<AnalysisReportDto> reports, JsonWriter json) {
+    json.name("reports").beginArray();
+    for (AnalysisReportDto report : reports) {
+      json.beginObject();
+      json.prop("id", report.getId());
+      json.prop("project", report.getProjectKey());
+      json.prop("projectName", report.getProjectName());
+      json.propDateTime("startDate", report.getCreatedAt());
+      json.propDateTime("updateDate", report.getUpdatedAt());
+      json.prop("status", report.getStatus().toString());
+      json.endObject();
+    }
+    json.endArray();
   }
 
   void define(WebService.NewController controller) {
@@ -53,4 +74,5 @@ public class ActiveReportsAction implements RequestHandler {
       .setResponseExample(Resources.getResource(getClass(), "example-list.json"))
       .setHandler(this);
   }
+
 }
