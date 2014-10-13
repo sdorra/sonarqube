@@ -23,10 +23,10 @@ package org.sonar.server.computation.ws;
 import org.sonar.api.server.ws.WebService;
 
 public class AnalysisReportWebService implements WebService {
-  private final ListAction list;
+  private final ActiveReportsAction active;
 
-  public AnalysisReportWebService(ListAction list) {
-    this.list = list;
+  public AnalysisReportWebService(ActiveReportsAction list) {
+    this.active = list;
   }
 
   @Override
@@ -35,6 +35,6 @@ public class AnalysisReportWebService implements WebService {
         .createController("api/analysis_reports")
         .setDescription("Analysis reports processed");
 
-    list.define(controller);
+    active.define(controller);
   }
 }

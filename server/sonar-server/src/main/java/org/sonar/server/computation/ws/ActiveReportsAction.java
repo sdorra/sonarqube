@@ -33,10 +33,10 @@ import java.util.List;
 /**
  * @since 5.0
  */
-public class ListAction implements RequestHandler {
+public class ActiveReportsAction implements RequestHandler {
   private final ComputationService service;
 
-  public ListAction(ComputationService service) {
+  public ActiveReportsAction(ComputationService service) {
     this.service = service;
   }
 
@@ -47,10 +47,10 @@ public class ListAction implements RequestHandler {
 
   void define(WebService.NewController controller) {
     WebService.NewAction action = controller
-        .createAction("list")
-        .setDescription("List all the acknowledged analysis reports not finished yet")
-        .setSince("5.0")
-        .setResponseExample(Resources.getResource(getClass(), "example-list.json"))
-        .setHandler(this);
+      .createAction("active")
+      .setDescription("List all the active analysis reports")
+      .setSince("5.0")
+      .setResponseExample(Resources.getResource(getClass(), "example-list.json"))
+      .setHandler(this);
   }
 }
